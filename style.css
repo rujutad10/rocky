@@ -1,21 +1,41 @@
 body{
 
     margin:0;
-
+    overflow:hidden;
     background:transparent;
 
-    overflow:hidden;
+}
+
+#container{
+
+    position:relative;
+    width:220px;
+    height:260px;
 
 }
 
 #rocky{
 
-    width:90px;
-
-    image-rendering:pixelated;
-
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:110PX;
     user-select:none;
-
     pointer-events:auto;
+
+}
+
+#bubble{
+
+    position:absolute;
+
+    left:20px;
+    bottom:125px;
+
+    width:180px;
+
+    display:none;
+
+    image-rendering:auto;
 
 }

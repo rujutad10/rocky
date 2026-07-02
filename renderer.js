@@ -1,90 +1,149 @@
-const rocky = document.getElementById("rocky");
 const { ipcRenderer } = require("electron");
 
-const walkframes = [
+const rocky = document.getElementById("rocky");
+const bubble = document.getElementById("bubble");
+
+const walkFrames = [
     "assets/walk1.png",
     "assets/walk2.png"
 ];
-const jazzframes=[
+
+const jazzFrames = [
     "assets/jazz1.png",
     "assets/jazz2.png"
-]
-const ballframes=[
-    "assets/ball.png"
-]
+];
 
-let walkframe = 0;
-let jazzframe = 0;
-let hovering=0;
+const ballFrame = "assets/ball.png";
 
+const bubbleFrames = [
+    "assets/science.png",
+    "assets/encouragement.png"
+];
 
+let walkFrame = 0;
+let jazzFrame = 0;
+let bubbleFrame = 0;
 
-let canwalk=false;
-ipcRenderer.on("walking-mode", (event, walk) => {
+let hovering = false;
+let canWalk = false;
 
-    canwalk = walk;
+ipcRenderer.on("walking-mode",(event,walk)=>{
+
+    canWalk = walk;
 
 });
-// walking 
-setInterval(() => {
-    if(!canwalk){
-        rocky.src=ballframes[0];
+
+ipcRenderer.on("bubble",(event,show)=>{
+
+    if(show){
+
+        bubble.src = bubbleFrames[bubbleFrame];
+
+        bubble.style.display = "block";
+
+        bubbleFrame = (bubbleFrame + 1) % bubbleFrames.length;
 
     }
-    else if(hovering==1){
-        rocky.src=jazzframes[jazzframe];
-        jazzframe    = (jazzframe + 1) % jazzframes.length;
-    }
-    else {
-        rocky.src = walkframes[walkframe];
-        walkframe = (walkframe + 1) % walkframes.length;
-    }
-    
-}, 150);
 
+    else{
 
-// cursor jazz hands
-rocky.addEventListener("mouseenter", () => {
-    hovering=1;
-});
-rocky.addEventListener("mouseleave", () => {
-    hovering=0;
+        bubble.style.display = "none";
+
+    }
+
 });
 
-// ----------------------------
-// Movement
-// ----------------------------
+setInterval(()=>{
 
-const screenWidth = window.screen.availWidth;
+    if(!canWalk){
+
+        rocky.src = ballFrame;
+
+    }
+
+    else if(hovering){
+
+        rocky.src = jazzFrames[jazzFrame];
+
+        jazzFrame = (jazzFrame + 1) % jazzFrames.length;
+
+    }
+
+    else{
+
+        rocky.src = walkFrames[walkFrame];
+
+        walkFrame = (walkFrame + 1) % walkFrames.length;
+
+    }
+
+},150);
+
+rocky.addEventListener("mouseenter",()=>{
+
+    hovering = true;
+
+});
+
+rocky.addEventListener("mouseleave",()=>{
+
+    hovering = false;
+
+});
+
+const screenWidth = window.screen.width;
 const screenHeight = window.screen.availHeight;
 
-const rockyWidth = 120;
-const rockyHeight = 120;
+const WINDOW_HEIGHT = 260;
+
+const rockyWidth = 160;
+
+const baseY = screenHeight - WINDOW_HEIGHT;
 
 let x = 2;
-let y = screenHeight - rockyHeight;
+let y = baseY;
 
 let speed = 2;
 
-function move() {
+let bounce = 0;
+function move(){
 
-    
-    if(canwalk){x += speed;}
-    else x=2;
+    if(canWalk){
 
-    if (x <= 0) {
-        speed = 2;
-        rocky.style.transform = "scaleX(1)";
+        x += speed;
+
+        y = baseY;
+
     }
 
-    if (x >= screenWidth - rockyWidth) {
+    else{
+
+        x = 2;
+
+        bounce += 0.08;
+
+        y = baseY + Math.sin(bounce) * 3;
+
+    }
+
+    if(x <= 0){
+
+        speed = 2;
+        rocky.style.transform = "scaleX(1)";
+
+    }
+
+    if(x >= screenWidth - rockyWidth){
+
         speed = -2;
         rocky.style.transform = "scaleX(-1)";
+
     }
 
     ipcRenderer.send("move-rocky", x, y);
 
     requestAnimationFrame(move);
+
 }
 
 move();

@@ -1,27 +1,32 @@
 const { app, BrowserWindow, screen, ipcMain } = require("electron");
+const activeWin = require("active-win");
 
 let win;
 
-const ROCKY_SIZE = 90;
-
-
+const WINDOW_WIDTH = 220;
+const WINDOW_HEIGHT = 260;
 
 function createWindow() {
 
     const display = screen.getPrimaryDisplay();
     const workArea = display.workArea;
 
+
+
     win = new BrowserWindow({
-        width: ROCKY_SIZE,
-        height: ROCKY_SIZE,
-        x: 2,
-        y: workArea.y + workArea.height - ROCKY_SIZE,
+        width: WINDOW_WIDTH,
+        height: WINDOW_HEIGHT,
+
+        x: 0,
+        y: workArea.y + workArea.height - WINDOW_HEIGHT,
 
         frame: false,
         transparent: true,
-        alwaysOnTop: true,
         resizable: false,
         skipTaskbar: true,
+        movable: false,
+
+        alwaysOnTop: true,
 
         webPreferences: {
             nodeIntegration: true,
@@ -29,37 +34,54 @@ function createWindow() {
         }
     });
 
+    // Highest possible level
+    win.setAlwaysOnTop(true, "screen-saver");
+    win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    win.setFullScreenable(false);
+
     win.loadFile("index.html");
 }
-
-const activeWin = require("active-win");
-
 
 async function checkActiveWindow() {
 
     const activeWindow = await activeWin();
-     console.log(activeWindow);
-    if(!win)return;
-    if(activeWindow.title === "Program Manager" ||
-        activeWindow.title.includes("File Explorer")){
-    win.webContents.send("walking-mode",true);
-}
-else{
-    win.webContents.send("walking-mode",false);
+
+    if (!activeWindow || !win) return;
+
+    if (
+        activeWindow.title === "Program Manager" ||
+        activeWindow.title.includes("File Explorer")
+    ) {
+        win.webContents.send("walking-mode", true);
+        win.webContents.send("bubble", false);
+    }
+
+    else if (
+        activeWindow.title.includes("Visual Studio Code")
+    ) {
+        win.webContents.send("walking-mode", false);
+        win.webContents.send("bubble", true);
+    }
+
+    else {
+        win.webContents.send("walking-mode", false);
+        win.webContents.send("bubble", false);
+    }
 }
 
-
-}
 app.whenReady().then(() => {
+
     createWindow();
+
     setInterval(checkActiveWindow, 1000);
+
 });
 
-
 ipcMain.on("move-rocky", (event, x, y) => {
-    if (win) {
+
+    if (win)
         win.setPosition(Math.round(x), Math.round(y));
-    }
+
 });
 
 app.on("window-all-closed", () => {
