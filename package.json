@@ -1,0 +1,15 @@
+{
+  "name": "rocky",
+  "version": "1.0.0",
+  "description": "Desktop Companion",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^38.0.0"
+  },
+  "dependencies": {
+    "active-win": "^8.2.1"
+  }
+}

@@ -1,0 +1,21 @@
+body{
+
+    margin:0;
+
+    background:transparent;
+
+    overflow:hidden;
+
+}
+
+#rocky{
+
+    width:90px;
+
+    image-rendering:pixelated;
+
+    user-select:none;
+
+    pointer-events:auto;
+
+}
