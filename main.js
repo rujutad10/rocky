@@ -6,12 +6,12 @@ let win;
 const WINDOW_WIDTH = 220;
 const WINDOW_HEIGHT = 260;
 
+let lastState = "";
+
 function createWindow() {
 
     const display = screen.getPrimaryDisplay();
     const workArea = display.workArea;
-
-
 
     win = new BrowserWindow({
         width: WINDOW_WIDTH,
@@ -23,8 +23,8 @@ function createWindow() {
         frame: false,
         transparent: true,
         resizable: false,
-        skipTaskbar: true,
         movable: false,
+        skipTaskbar: true,
 
         alwaysOnTop: true,
 
@@ -34,9 +34,10 @@ function createWindow() {
         }
     });
 
-    // Highest possible level
     win.setAlwaysOnTop(true, "screen-saver");
-    win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    win.setVisibleOnAllWorkspaces(true, {
+        visibleOnFullScreen: true
+    });
     win.setFullScreenable(false);
 
     win.loadFile("index.html");
@@ -44,28 +45,43 @@ function createWindow() {
 
 async function checkActiveWindow() {
 
+    if (!win) return;
+
     const activeWindow = await activeWin();
 
-    if (!activeWindow || !win) return;
+    if (!activeWindow) return;
+
+    const title = activeWindow.title || "";
+
+    let currentState = "";
 
     if (
-        activeWindow.title === "Program Manager" ||
-        activeWindow.title.includes("File Explorer")
+        title === "Program Manager" ||
+        title.includes("File Explorer")
     ) {
-        win.webContents.send("walking-mode", true);
-        win.webContents.send("bubble", false);
-    }
 
+        currentState = "desktop";
+
+    }
     else if (
-        activeWindow.title.includes("Visual Studio Code")
+        title.includes("Visual Studio Code")
     ) {
-        win.webContents.send("walking-mode", false);
-        win.webContents.send("bubble", true);
+
+        currentState = "vscode";
+
     }
 
-    else {
-        win.webContents.send("walking-mode", false);
-        win.webContents.send("bubble", false);
+    if (currentState !== lastState) {
+
+        lastState = currentState;
+
+        if (currentState !== "") {
+
+            console.log("Sending:", currentState);
+
+            win.webContents.send(currentState);
+
+        }
     }
 }
 
@@ -79,11 +95,19 @@ app.whenReady().then(() => {
 
 ipcMain.on("move-rocky", (event, x, y) => {
 
-    if (win)
-        win.setPosition(Math.round(x), Math.round(y));
+    if (win) {
+
+        win.setPosition(
+            Math.round(x),
+            Math.round(y)
+        );
+
+    }
 
 });
 
 app.on("window-all-closed", () => {
+
     app.quit();
+
 });
